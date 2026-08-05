@@ -1296,11 +1296,14 @@
   @media print {
     @page {
       size: A4 portrait;
-      /* Top/bottom 4mm: minimum space to allow browser header/footer to render
-         but keeps them as compact as possible. Zero side margins for edge-to-edge content.
-         To get ZERO white space, user must uncheck "Headers and Footers" in the
-         browser print dialog. */
-      margin: 4mm 0 4mm 0;
+      /* PM 2026-08-05: margin was 4mm top/bottom, which is precisely the strip
+         Chrome/Edge use to stamp the title, date, PAGE URL and page number. With
+         the file opened from a local folder that meant the full path (e.g. the
+         GitHub working copy) was printed into every exported PDF.
+         Zero margin leaves no margin box, so the browser omits headers/footers
+         entirely and no path can leak into the handover document. The 4mm of
+         breathing room is re-applied as body padding just below. */
+      margin: 0;
       /* CSS margin-box content suppression (works in Firefox, Prince, some others) */
       @top-left { content: ""; }
       @top-center { content: ""; }
@@ -1311,6 +1314,12 @@
     }
     *, *::before, *::after { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; color-adjust: exact !important; }
     html, body { background: white !important; margin: 0 !important; padding: 0 !important; }
+    /* PM 2026-08-05: replaces the 4mm @page margin removed above. Keeps content off
+       the physical sheet edge now that the page box itself has no margin.
+       Selector is "html body" (specificity 0,0,2) on purpose — three later @media
+       print blocks each declare "body { padding:0 !important }", and among
+       !important declarations the higher specificity wins regardless of order. */
+    html body { padding: 4mm 0 !important; }
     body { -webkit-text-size-adjust: none !important; font-size: 9pt; font-family: 'Segoe UI', Arial, sans-serif; color: #253746; }
 
     /* Comment rows: hide unless they have content */
@@ -2126,6 +2135,14 @@
       <div class="hf"><label>Implementation Contractor</label><input id="h_contractor" placeholder="Company name"></div>
       <div class="hf" style="grid-column:span 2"><label>Scope of Work</label><select id="h_scope" onchange="onScopeChange();saveProgress()" style="width:100%;background:transparent;border:none;border-bottom:1px solid rgba(255,255,255,0.3);color:white;font-size:12px;padding:4px 2px;font-family:inherit;-webkit-appearance:none;appearance:none;cursor:pointer;"><option value="" selected>— None —</option><option value="new_site">New Site</option><option value="replacement">Battery Replacement</option><option value="upgrade">Battery Upgrade</option></select></div>
 
+      <!-- PM 2026-08-05: Project Name + Shelter Type. These two gate conditional
+           checklist content: Project = "CAPEX" reshapes items 17/18/19 and drops
+           the old item 21; Project = "Aramco Digital" raises the autonomy target
+           on item 28 from 4h to 12h; Shelter Type picks black-box vs ODU wording. -->
+      <div class="hf"><label>Project Name</label><select id="h_project" onchange="onProjectChange();saveProgress()" style="width:100%;background:transparent;border:none;border-bottom:1px solid rgba(255,255,255,0.3);color:white;font-size:12px;padding:4px 2px;font-family:inherit;-webkit-appearance:none;appearance:none;cursor:pointer;"><option value="" selected>— None —</option><option value="CAPEX">CAPEX</option><option value="Colocation">Colocation</option><option value="B2S">B2S</option><option value="Mission Critical">Mission Critical</option><option value="Aramco Digital">Aramco Digital</option><option value="Other">Other</option></select></div>
+      <div class="hf"><label>Shelter Type</label><select id="h_shelter" onchange="onShelterChange();saveProgress()" style="width:100%;background:transparent;border:none;border-bottom:1px solid rgba(255,255,255,0.3);color:white;font-size:12px;padding:4px 2px;font-family:inherit;-webkit-appearance:none;appearance:none;cursor:pointer;"><option value="" selected>— None —</option><option value="Shelter">Shelter</option><option value="Room">Room</option><option value="ODU">ODU</option></select></div>
+      <div class="hf" id="hf_project_other" style="display:none;grid-column:span 2"><label>Project Name — please specify</label><input id="h_project_other" placeholder="Enter project name" oninput="saveProgress()"></div>
+
       <div class="hf"><label>Rectifier DC Load Current (A)</label><input id="h_dc_load" type="number" step="0.1" min="0" placeholder="e.g. 40" oninput="this.value=this.value.replace(/[^0-9.]/g,'');onDcLoadChange();saveProgress()" style="width:100%;"></div>
       <div class="hf"><label>No. of new batteries <span style="font-size:9px;opacity:.65">(auto)</span></label><input id="h_qty" type="number" placeholder="0" min="0" max="16" readonly style="width:80px;background:rgba(255,255,255,.08);cursor:not-allowed;"></div>
 
@@ -2155,6 +2172,51 @@
         <button onclick="document.getElementById('missing-items-modal').style.display='none'" style="background:rgba(255,255,255,.18);border:none;color:white;font-size:18px;cursor:pointer;line-height:1;padding:2px 8px;border-radius:3px;">&times;</button>
       </div>
       <div id="missing-items-body" style="overflow:auto;padding:12px 14px;font-size:12px;line-height:1.5;color:var(--grey);"></div>
+    </div>
+  </div>
+
+  <!-- PM 2026-08-05: BBs CB/Fuse Connection Guidelines — the reference behind item #27
+       (even distribution). The old link had an empty GUIDELINES_URL and rendered as a
+       dead tooltip; it now opens this modal. -->
+  <div id="guidelines-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9999;align-items:center;justify-content:center;padding:16px;" onclick="if(event.target===this)this.style.display='none'">
+    <div style="background:white;border-radius:8px;max-width:620px;width:100%;max-height:88vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 16px 40px rgba(0,0,0,.4);">
+      <div style="background:var(--sea);color:white;padding:10px 16px;display:flex;align-items:center;justify-content:space-between;">
+        <strong style="font-size:13px;letter-spacing:.04em;" data-en="BBs CB/Fuse Connection Guidelines">📘 BBs CB/Fuse Connection Guidelines</strong>
+        <button onclick="document.getElementById('guidelines-modal').style.display='none'" style="background:rgba(255,255,255,.18);border:none;color:white;font-size:18px;cursor:pointer;line-height:1;padding:2px 8px;border-radius:3px;">&times;</button>
+      </div>
+      <div style="overflow:auto;padding:14px 16px;font-size:12px;line-height:1.6;color:var(--grey);">
+
+        <div style="display:flex;gap:9px;padding:9px 10px;border-radius:5px;background:#EDF7EE;border-left:3px solid var(--green);margin-bottom:9px;">
+          <strong style="color:var(--green);flex-shrink:0;">1.</strong>
+          <div>If no. of existing BB fuses/CBs is <b>≥</b> no. of BBs, then every BB to be connected to a <b>dedicated fuse/CB</b>.</div>
+        </div>
+
+        <div style="display:flex;gap:9px;padding:9px 10px;border-radius:5px;background:#FFF8E8;border-left:3px solid var(--orange);margin-bottom:9px;">
+          <strong style="color:var(--orange);flex-shrink:0;">2.</strong>
+          <div>If no. of existing BB fuses/CBs is <b>&lt;</b> no. of BBs, but additional fuses/CBs <b>can</b> be added to match the no. of BBs, then <b>additional fuses/CBs to be installed</b>.</div>
+        </div>
+
+        <div style="padding:9px 10px;border-radius:5px;background:#FEF2F1;border-left:3px solid var(--red);">
+          <div style="display:flex;gap:9px;">
+            <strong style="color:var(--red);flex-shrink:0;">3.</strong>
+            <div>If no. of existing BB fuses/CBs is <b>&lt;</b> no. of BBs, and additional fuses/CBs <b>can't</b> be added to match the no. of BBs:</div>
+          </div>
+
+          <div style="margin:9px 0 0 22px;padding:8px 10px;background:white;border:1px solid #F0D8D5;border-radius:4px;">
+            <b>a.</b> If (DC cabinet's total load @48V ÷ no. of BBs) <b>&lt; 50 A</b> → proceed with connecting <b>two BBs to the same 125 A</b> without any modification.
+          </div>
+
+          <div style="margin:8px 0 0 22px;padding:8px 10px;background:white;border:1px solid #F0D8D5;border-radius:4px;">
+            <b>b.</b> If (DC cabinet's total load @48V ÷ no. of BBs) <b>≥ 50 A</b> → ES to proceed with <b>one</b> of the below solutions based on site's condition:
+            <ol style="margin:6px 0 0 18px;padding:0;">
+              <li style="margin-bottom:3px;">Upgrade fuse/CB and BB power cables</li>
+              <li style="margin-bottom:3px;">Install DCDP or fuse box</li>
+              <li>Connect additional BBs' cables directly to DC cabinet busbar</li>
+            </ol>
+          </div>
+        </div>
+
+      </div>
     </div>
   </div>
 
@@ -3653,9 +3715,10 @@ function toNum(v) {
 
 function updateSett2A() {
   var eps = 0.01; // floating-point tolerance
-  // Row 0: SOC — pass if reading equal to 100% or up to 10% lower (i.e. 90–100%)
+  // Row 0: SOC — PM 2026-08-05: threshold lowered from 90–100% to ≥ 40%.
+  //   Pass when the reading is at least 40% (and not above a physical 100%).
   var r0 = toNum((document.getElementById('sett2a_act_0')||{}).value);
-  if (!isNaN(r0)) setPF('sett2a', 0, r0 >= 90 - eps && r0 <= 100 + eps); else setPF('sett2a',0,null);
+  if (!isNaN(r0)) setPF('sett2a', 0, r0 >= 40 - eps && r0 <= 100 + eps); else setPF('sett2a',0,null);
   // Row 1: CLD = 10 A (exact)
   var r1 = toNum((document.getElementById('sett2a_act_1')||{}).value);
   if (!isNaN(r1)) setPF('sett2a', 1, Math.abs(r1 - 10) <= eps); else setPF('sett2a',1,null);
@@ -3866,15 +3929,18 @@ function autoEvaluateAutonomy() {
   }
   var effectiveLoad = dcLoad * 54/48;
   var autonomy = totalAh / effectiveLoad;
+  // PM 2026-08-05: target is 4h normally, 12h when Project Name = "Aramco Digital".
+  var target = (typeof getAutonomyTarget === 'function') ? getAutonomyTarget() : 4;
+  var meets = autonomy >= target;
   if (calcEl) {
     calcEl.innerHTML =
       '<strong>' + tUI('Calculation:') + '</strong> ΣAH = <b>' + totalAh.toFixed(1) + ' Ah</b> '
       + tUI('(Newly Installed + Pre-Existing), Effective load =') + ' ' + dcLoad.toFixed(1) + ' × 54/48 = <b>' + effectiveLoad.toFixed(2) + ' A</b><br>'
       + tUI('Autonomy =') + ' ' + totalAh.toFixed(1) + ' ÷ ' + effectiveLoad.toFixed(2) + ' = <b style="color:'
-      + (autonomy >= 4 ? 'var(--green)' : 'var(--red)') + ';">' + autonomy.toFixed(2) + ' h</b> '
-      + (autonomy >= 4 ? '(≥ 4h → ' + tUI('OK') + ')' : '(&lt; 4h → ' + tUI('NOK') + ')');
+      + (meets ? 'var(--green)' : 'var(--red)') + ';">' + autonomy.toFixed(2) + ' h</b> '
+      + (meets ? '(≥ ' + target + 'h → ' + tUI('OK') + ')' : '(&lt; ' + target + 'h → ' + tUI('NOK') + ')');
   }
-  autoSetAcceptItem(15, autonomy >= 4 ? 'ok' : 'nok');
+  autoSetAcceptItem(15, meets ? 'ok' : 'nok');
 }
 
 // Auto-fill index 18: "Battery type, count, Ah capacity and other related DC system setpoints
@@ -4252,7 +4318,8 @@ const ACCEPT_NOTES = {
   6:  "If total number of BBs to be installed is 10, installation shall start from the lowest shelf.",   // was idx 7
   8:  "If grounding busbar is not available, contractor shall install a new busbar.",                    // was idx 9
   9:  "🔒 Auto-filled: OK when (Newly Installed + Pre-Existing) BB count ≤ 16, else NOK.",            // was idx 10
-  11: "DC cable CSA should be 25 mm² if distance between battery and DC cabinet ≤ 5 m, and 35 mm² if > 5 m. Interconnection cables must match.", // was idx 12
+  // PM 2026-08-05: appended the 1-metre tolerance to the existing CSA guidance.
+  11: "DC cable CSA should be 25 mm² if distance between battery and DC cabinet ≤ 5 m, and 35 mm² if > 5 m. Interconnection cables must match. Max allowable difference between longest and shortest cable is 1 meter.", // was idx 12
   13: "🔒 Auto-filled: NOK when any CB/Fuse# has more than 2 Newly Installed/Pre-Existing BBs.",     // was idx 14
   14: "🔒 Auto-filled: OK if utilized fuses ≥ BBs; else OK if (Load × 54/48)/BBs < 50 A AND item 13 (max 2 per fuse) = OK; else NOK if load/BB ≥ 50 A.", // was idx 15
   15: "🔒 Auto-filled: autonomy = Σ(AH of Newly Installed + Pre-Existing) ÷ (Load × 54/48). OK when autonomy ≥ 4h.", // was idx 16
@@ -4337,6 +4404,13 @@ const ACCEPTANCE_ITEMS = [
   "Enough space is available to install the new Li-Ion BBs' rack with sufficient ventilation clearances of min. 20 cm from A/C grilles and 5 cm from rectifier cabinet.",
   // PM 2026-05-17: NEW idx 34 — Major item rendered after #28 (Backup ≥4h) at display #29.
   "Every new Li-Ion Battery is separately grounded to the rack (no battery-to-battery grounding jumper is allowed).",
+  // PM 2026-08-05: NEW idx 35 — CAPEX ONLY. Replaces the whole rack group at display #17.
+  //   Text is shelter-dependent and resolved at render time by getAcceptText().
+  //   Not present in ACCEPT_DISPLAY_ORDER — getDisplayOrder() splices it in for CAPEX.
+  "Batteries are installed inside black box.",
+  // PM 2026-08-05: NEW idx 36 — Major item rendered immediately after display #41
+  //   (energized one-by-one). Applies to every project.
+  "Charging current of every battery is verified after energizing ≤ 10 A.",
 ];
 
 // ═══════════════════════════════════════════════════════════════════════
@@ -4451,7 +4525,34 @@ const ACCEPTANCE_ITEMS_NOK = [
   "NOT enough space is available to install the new Li-Ion BBs' rack with required ventilation clearances (≥ 20 cm from A/C grilles, ≥ 5 cm from rectifier cabinet).",
   // PM 2026-05-17: NEW idx 34 (display 29) — new Major item
   "Battery-to-battery grounding jumpers are used and/or new Li-Ion Batteries are NOT separately grounded to the rack.",
+  // PM 2026-08-05: NEW idx 35 — CAPEX only. Shelter-dependent form resolved by getAcceptNok().
+  "Batteries are NOT installed inside black box.",
+  // PM 2026-08-05: NEW idx 36 — charging current after energizing
+  "Charging current of one or more batteries exceeds 10 A after energizing (or was NOT verified).",
 ];
+
+// PM 2026-08-05: NOK phrasing with CAPEX / Shelter-Type overrides applied.
+function getAcceptNok(i) {
+  var bb = isBlackBoxShelter();
+  if (i === CAPEX_BLACKBOX_IDX) {
+    return bb ? "Batteries are NOT installed inside black box."
+              : "Battery cabinet is NOT secured by ODU angle box lock.";
+  }
+  if (isCapexProject()) {
+    if (i === 3) {
+      return bb ? "Batteries are NOT securely fixed to black box's body with enough bolts and spring washers."
+                : "Batteries are NOT securely fixed to ODU's body with enough bolts and spring washers.";
+    }
+    if (i === 4) {
+      return bb ? "More than 4 batteries in a single black box, and/or more than 2 black boxes stacked on top of each other."
+                : "More than 9 batteries installed in a single ODU.";
+    }
+  }
+  if (i === AUTONOMY_TARGET_IDX && isAramcoProject()) {
+    return "Overall batteries' backup time is less than 12 hours.";
+  }
+  return ACCEPTANCE_ITEMS_NOK[i];
+}
 
 // PM 2026-05-07: continuous numbering across the merged Stop+Accept section.
 // PM 2026-05-17: Layout reshape. Stop section now has 14 items (1–14). Acceptance
@@ -4513,17 +4614,153 @@ const ACCEPT_DISPLAY_ORDER = [
 //     (Item #18-#21 for promoted rack items, Item #26 for MCU, Item #40 for old
 //     equipment removed). A small "gap" at #15 is intentional.
 //   - Position 0 → "16", positions 1..5 → "17.a"–"17.e", positions 6+ → "18"…"46"
+// ═══════════════════════════════════════════════════════════════════════
+// PM 2026-08-05: Project Name / Shelter Type conditional checklist.
+//   Project "CAPEX"          → item 17 collapses from the five rack sub-items
+//                              (17.a–17.e) into a single black-box / ODU item
+//                              (idx 35, Major); items 18 & 19 reworded to the
+//                              black-box / ODU forms; old item 21 ("no battery
+//                              on top of rack", idx 7) is dropped entirely.
+//   Project "Aramco Digital" → item 28 autonomy target raised 4h → 12h.
+//   Shelter Type             → "Shelter"/"Room" take black-box wording,
+//                              "ODU" takes ODU wording.
+// Indices 35/36 are APPENDED to ACCEPTANCE_ITEMS so every pre-existing array
+// index stays valid (ACCEPT_SEV, ACCEPT_NOTES, PHOTO_META and the auto-rule
+// *_IDX refs all key by array idx, never by display position).
+// ═══════════════════════════════════════════════════════════════════════
+var CAPEX_BLACKBOX_IDX = 35;   // CAPEX-only replacement for the whole rack group
+var CHARGE_CURRENT_IDX = 36;   // new item rendered immediately after display #41
+
+function getProjectName() {
+  var el = document.getElementById('h_project');
+  return el ? el.value : '';
+}
+function getShelterType() {
+  var el = document.getElementById('h_shelter');
+  return el ? el.value : '';
+}
+function isCapexProject()  { return getProjectName() === 'CAPEX'; }
+function isAramcoProject() { return getProjectName() === 'Aramco Digital'; }
+// "Shelter" and "Room" share the black-box wording; "ODU" is the other branch.
+// Falls back to black-box wording when Shelter Type is still unset.
+function isBlackBoxShelter() { return getShelterType() !== 'ODU'; }
+
+// Effective render order for the current Project / Shelter selection.
+function getDisplayOrder() {
+  var order = ACCEPT_DISPLAY_ORDER.slice();
+  if (isCapexProject()) {
+    order.splice(1, 5, CAPEX_BLACKBOX_IDX);      // 17.a–17.e → single item 17
+    var top = order.indexOf(7);                  // old #21 — no battery on top of rack
+    if (top !== -1) order.splice(top, 1);
+  }
+  var energized = order.indexOf(27);             // display #41 — energized one-by-one
+  if (energized !== -1) order.splice(energized + 1, 0, CHARGE_CURRENT_IDX);
+  return order;
+}
+
+// Item text with CAPEX / Shelter-Type / Aramco overrides applied.
+function getAcceptText(i) {
+  var bb = isBlackBoxShelter();
+  if (i === CAPEX_BLACKBOX_IDX) {
+    return bb ? "Batteries are installed inside black box."
+              : "Battery cabinet is secured by ODU angle box lock.";
+  }
+  if (isCapexProject()) {
+    if (i === 3) {
+      return bb ? "Batteries are securely fixed to black box's body using enough bolts and spring washers."
+                : "Batteries are securely fixed to ODU's body using enough bolts and spring washers.";
+    }
+    if (i === 4) {
+      return bb ? "No. of batteries don't exceed 4 in a single black box and maximum of 2 black boxes are installed on top of each other."
+                : "No. of batteries don't exceed 9 in a single ODU.";
+    }
+  }
+  if (i === AUTONOMY_TARGET_IDX && isAramcoProject()) {
+    return "Overall batteries' backup time ≥ 12 hours.";
+  }
+  return ACCEPTANCE_ITEMS[i];
+}
+
+// Acceptance idx 15 = display #28 (backup time). Named so the Aramco override
+// and autoEvaluateAutonomy() cannot drift apart.
+var AUTONOMY_TARGET_IDX = 15;
+// Autonomy target in hours — 12h on Aramco Digital, otherwise the standard 4h.
+function getAutonomyTarget() { return isAramcoProject() ? 12 : 4; }
+
+// Note text with the Aramco autonomy override applied.
+function getAcceptNote(i) {
+  if (i === AUTONOMY_TARGET_IDX && isAramcoProject()) {
+    return "🔒 Auto-filled: autonomy = Σ(AH of Newly Installed + Pre-Existing) ÷ (Load × 54/48). OK when autonomy ≥ 12h.";
+  }
+  return ACCEPT_NOTES[i];
+}
+
+// PM 2026-05-17 / revised 2026-08-05: display label for ACCEPTANCE_ITEMS idx i.
+//   - Non-CAPEX: pos 0 → "16", pos 1..5 → "17.a"–"17.e", pos 6+ → "18"…
+//   - CAPEX:     pos 0 → "16", pos 1 → "17" (single item), pos 2+ → "18"…
 function getAcceptLabel(i) {
-  var pos = ACCEPT_DISPLAY_ORDER.indexOf(i);
-  if (pos === -1) return '';                                        // shouldn't happen
+  var order = getDisplayOrder();
+  var pos = order.indexOf(i);
+  if (pos === -1) return '';                                        // not rendered
   if (pos === 0) return '16';                                       // Tawal logo
+  if (isCapexProject()) return String(pos + 16);                    // 17, 18, 19 …
   if (pos >= 1 && pos <= 5) return '17.' + String.fromCharCode(96 + pos); // 17.a–17.e (rack subitems)
-  return String(pos + 12);                                          // pos 6 → 18 … pos 34 → 46
+  return String(pos + 12);                                          // pos 6 → 18 …
+}
+
+// ── Project / Shelter change handlers ──
+function onProjectChange() {
+  var other = document.getElementById('hf_project_other');
+  if (other) other.style.display = (getProjectName() === 'Other') ? '' : 'none';
+  refreshConditionalChecklist();
+}
+function onShelterChange() { refreshConditionalChecklist(); }
+
+// Re-render the acceptance table, preserving answers and notes across the
+// rebuild. Radio handlers are document-delegated (installRadioToggle), so they
+// survive the innerHTML replacement — only the values need restoring.
+function refreshConditionalChecklist() {
+  var snap = {};
+  for (var i = 0; i < ACCEPTANCE_ITEMS.length; i++) {
+    var rbs = document.getElementsByName('accept_' + i);
+    for (var r = 0; r < rbs.length; r++) {
+      if (rbs[r].checked) { snap['a' + i] = rbs[r].value; break; }
+    }
+    var nt = document.getElementById('accept_note_' + i);
+    if (nt && nt.value) snap['n' + i] = nt.value;
+  }
+
+  try { if (typeof renderAcceptTable === 'function') renderAcceptTable(); } catch(e) {}
+
+  Object.keys(snap).forEach(function(k){
+    var idx = k.slice(1);
+    if (k.charAt(0) === 'a') {
+      var rr = document.getElementsByName('accept_' + idx);
+      for (var x = 0; x < rr.length; x++) {
+        if (rr[x].value === snap[k]) { rr[x].checked = true; break; }
+      }
+    } else {
+      var el = document.getElementById('accept_note_' + idx);
+      if (el) el.value = snap[k];
+    }
+  });
+
+  // Replay the post-render wiring that init performs.
+  try { if (typeof onNewRackChange === 'function') onNewRackChange(); } catch(e) {}
+  try { if (typeof autoEvaluateAutonomy === 'function') autoEvaluateAutonomy(); } catch(e) {}
+  try { if (typeof autoEvaluateEvenDist === 'function') autoEvaluateEvenDist(); } catch(e) {}
+  try { if (typeof autoEvaluateMcuConfig === 'function') autoEvaluateMcuConfig(); } catch(e) {}
+  try { if (typeof computeOutcome === 'function') computeOutcome(); } catch(e) {}
+  try { if (typeof updateProgress === 'function') updateProgress(); } catch(e) {}
 }
 
 function renderAcceptTable() {
   var tbody = document.getElementById('accept-tbody');
   if (!tbody) return;
+  // PM 2026-08-05: this used to run exactly once at init, so it only ever appended.
+  // Project Name / Shelter Type now re-render it on change — clear first or every
+  // switch duplicates the whole table.
+  tbody.innerHTML = '';
   // PM 2026-05-17: After reshape, rack sub-items are idx [1, 2, 33, 6, 8] in
   // ACCEPTANCE_ITEMS array (rendered as display 16.a–16.e). Item 30 (rack
   // galvanization cert) remains rack-gated. Auto-rule REF arrays still key by
@@ -4549,15 +4786,19 @@ function renderAcceptTable() {
   var NEW_GROUNDING_IDX = 34;     // PM 2026-05-17 new Major item (display 29)
 
   // PM 2026-05-17: iterate by display position. ACCEPT_DISPLAY_ORDER[pos] = array idx.
-  ACCEPT_DISPLAY_ORDER.forEach(function(i, pos) {
-    var item = ACCEPTANCE_ITEMS[i];
+  // PM 2026-08-05: iterate the *effective* order (Project/Shelter aware) and pull
+  // item text through getAcceptText() so CAPEX / Aramco overrides apply.
+  getDisplayOrder().forEach(function(i, pos) {
+    var item = getAcceptText(i);
     if (typeof item === 'undefined') return;
     var isRack = RACK_INDICES.indexOf(i) !== -1;
     var isNaEligible = NA_ELIGIBLE.indexOf(i) !== -1;
 
     // Battery Rack section header — inserted right before the first rack sub-item
     // (display position 1, which corresponds to idx 1 = 16.a "rack scratches").
-    if (pos === 1) {
+    // PM 2026-08-05: suppressed on CAPEX — position 1 there is the single
+    // black-box / ODU item, and the rack sub-items it gates are not rendered.
+    if (pos === 1 && !isCapexProject()) {
       // Insert the "Is a new battery rack being installed?" question as a regular-looking
       // checklist row with Yes/No pills, numbered "1a" (sub-question of item 1).
       // The "Applies only..." note sits beneath it.
@@ -4593,7 +4834,10 @@ function renderAcceptTable() {
     var tr = document.createElement('tr');
     tr.id = 'accept_row_' + i;
     // PM 2026-05-06: \u2139 icon stays outside the data-en span so the translation handler doesn't strip it.
-    var noteHtml = (ACCEPT_NOTES[i]) ? '<small style="color:var(--grey-mid);font-size:11px;display:block;margin-top:3px;">\u2139 <span data-en="' + ACCEPT_NOTES[i].replace(/"/g,'&quot;') + '">' + tUI(ACCEPT_NOTES[i]) + '</span></small>' : '';
+    // PM 2026-08-05: notes resolved via getAcceptNote() so the Aramco 12h autonomy
+    // rule replaces the standard 4h note text on item #28.
+    var noteTxt = getAcceptNote(i);
+    var noteHtml = (noteTxt) ? '<small style="color:var(--grey-mid);font-size:11px;display:block;margin-top:3px;">\u2139 <span data-en="' + noteTxt.replace(/"/g,'&quot;') + '">' + tUI(noteTxt) + '</span></small>' : '';
     // Live calculation display for auto-fill items
     var calcHtml = '';
     if (i === AUTONOMY_IDX) calcHtml = '<div id="autonomy_calc_16" style="font-size:11px;color:#555;margin-top:5px;padding:6px 8px;background:#F5F8FA;border-left:2px solid var(--sky);border-radius:3px;"></div>';
@@ -4609,7 +4853,10 @@ function renderAcceptTable() {
       if (GUIDELINES_URL) {
         guidelinesHtml = ' <a href="'+GUIDELINES_URL+'" target="_blank" rel="noopener" style="font-size:10px;font-weight:600;color:var(--sea);text-decoration:underline;cursor:pointer;white-space:nowrap;">\u{1F4D8} <span data-en="New connection guidelines">' + tUI('New connection guidelines') + '</span></a>';
       } else {
-        guidelinesHtml = ' <span title="Refer to TAWAL\u0027s approved battery-connection guideline document." style="font-size:10px;font-weight:600;color:var(--sea);cursor:help;white-space:nowrap;border-bottom:1px dotted var(--sea);">\u{1F4D8} <span data-en="New connection guidelines">' + tUI('New connection guidelines') + '</span></span>';
+        // PM 2026-08-05: was a dead tooltip span (GUIDELINES_URL has always been empty),
+        // so the reference looked like a link but did nothing. It now opens the
+        // in-document "BBs CB/Fuse Connection Guidelines" modal.
+        guidelinesHtml = ' <a href="#" onclick="event.preventDefault();showGuidelinesModal();" style="font-size:10px;font-weight:600;color:var(--sea);text-decoration:underline;cursor:pointer;white-space:nowrap;">\u{1F4D8} <span data-en="BBs CB/Fuse Connection Guidelines">' + tUI('BBs CB/Fuse Connection Guidelines') + '</span></a>';
       }
     }
 
@@ -4679,7 +4926,7 @@ function renderAcceptTable() {
   var badge = document.getElementById('badge-accept');
   // PM 2026-05-17: badge shows the count of items that are actually rendered
   // (ACCEPT_DISPLAY_ORDER length), not the full array length.
-  if (badge) badge.textContent = ACCEPT_DISPLAY_ORDER.length + ' ' + tUI('items');
+  if (badge) badge.textContent = getDisplayOrder().length + ' ' + tUI('items');
 
   // PM 2026-05-17: After (re)building the accept rows, apply the rack-collapse
   // state. Default = sub-items HIDDEN until user picks Yes/No on item #16.
@@ -4709,9 +4956,10 @@ function onAcceptChange(radio, i) {
   var nokBtn = document.getElementById('mnok_accept_'+i);
   var naBtn  = document.getElementById('mna_accept_'+i);
   var albl = (typeof ACCEPT_LABELS !== 'undefined' && ACCEPT_LABELS[i]) ? ACCEPT_LABELS[i] : ('Item ' + (i+1));
-  // For NOK display, use the negated phrasing if available
-  var albl_nok = (typeof ACCEPTANCE_ITEMS_NOK !== 'undefined' && ACCEPTANCE_ITEMS_NOK[i])
-                   ? ACCEPTANCE_ITEMS_NOK[i] : albl;
+  // For NOK display, use the negated phrasing if available.
+  // PM 2026-08-05: via getAcceptNok() so CAPEX / Shelter / Aramco wording applies.
+  var _nokTxt = (typeof getAcceptNok === 'function') ? getAcceptNok(i) : null;
+  var albl_nok = _nokTxt ? _nokTxt : albl;
   var isNok = radio.value === 'nok' && radio.checked;
   var isNa  = radio.value === 'na'  && radio.checked;
   var isOk  = radio.value === 'ok'  && radio.checked;
@@ -4767,7 +5015,8 @@ function validateAcceptComment(i) {
 function getSETT_2A() {
   const ah = (document.getElementById('h_ah') || {}).value || '';
   return [
-    ["State of Charge (SOC) on arrival at site", "100%"],
+    // PM 2026-08-05: acceptance threshold lowered 100% → 40% (pass when SOC ≥ 40%).
+    ["State of Charge (SOC) on arrival at site", "≥ 40%"],
     ["Battery Charging Current Limit", "10 A"],
     ["Battery Charging Rate", "1.0 C"],
     ["Battery Discharging Rate", "1.0 C"],
@@ -5484,11 +5733,16 @@ function updateProgress() {
   // PM 2026-05-17: Also skip rows that are currently hidden (rack sub-items when
   // the "Is a new rack being installed?" question is unanswered) — they're not
   // shown to the user, so they shouldn't drag the progress % down.
+  // PM 2026-08-05: skip items with no rendered row at all. Project Name / Shelter
+  // Type make the item set conditional (idx 35 is CAPEX-only; CAPEX drops the rack
+  // sub-items and old #21), and counting an unrendered item would put 100% out of
+  // reach for every project that doesn't render it.
   ACCEPTANCE_ITEMS.forEach((_, i) => {
+    const rowEl = document.getElementById('accept_row_' + i);
+    if (!rowEl) return;                                     // not part of this configuration
     const chk = document.querySelector(`input[name="accept_${i}"]:checked`);
     if (chk && chk.value === 'na') return;                  // explicit N/A → skip
-    const rowEl = document.getElementById('accept_row_' + i);
-    if (rowEl && rowEl.style.display === 'none') return;    // hidden (collapsed) → skip
+    if (rowEl.style.display === 'none') return;             // hidden (collapsed) → skip
     total++;
     if (chk) filled++;
   });
@@ -5522,6 +5776,12 @@ function updateProgress() {
 }
 
 // PM 2026-05-07: walk every counted question and list the unanswered ones in a modal.
+// PM 2026-08-05: opens the "BBs CB/Fuse Connection Guidelines" reference for item #27.
+function showGuidelinesModal() {
+  var m = document.getElementById('guidelines-modal');
+  if (m) m.style.display = 'flex';
+}
+
 function showMissingItemsModal() {
   var groups = [];
   // Stop conditions
@@ -5889,11 +6149,16 @@ function computeOutcome() {
 
 function _doComputeOutcome() {
   var majorNok = 0, minorNok = 0, naCount = 0, totalAnswered = 0;
-  var TOTAL_REQUIRED = ACCEPTANCE_ITEMS.length + STOP_CONDITIONS.length;
+  // PM 2026-08-05: count only the items actually rendered for the current
+  // Project / Shelter selection. Using the raw array length would count idx 35
+  // (CAPEX-only) on every other project and make 100% unreachable.
+  var _order = (typeof getDisplayOrder === 'function') ? getDisplayOrder() : ACCEPT_DISPLAY_ORDER;
+  var TOTAL_REQUIRED = _order.length + STOP_CONDITIONS.length;
 
   // Optimized scan: getElementsByName is much faster than querySelector in jsdom.
   // For each item, find the single :checked radio (if any) by inspecting the NodeList.
-  for (var i = 0; i < ACCEPTANCE_ITEMS.length; i++) {
+  for (var oi = 0; oi < _order.length; oi++) {
+    var i = _order[oi];
     var radios = document.getElementsByName('accept_' + i);
     var checkedVal = null;
     for (var rk = 0; rk < radios.length; rk++) {
@@ -6167,7 +6432,7 @@ const _store = {
 function collectFormData() {
   const data = { ts: Date.now(), fields: {}, photos: {} };
   // Header fields
-  ['h_siteid','h_sitename','h_wo','h_date','h_tech','h_contractor','h_region','h_district','h_scope','h_dc_load','h_qty'].forEach(id => {
+  ['h_siteid','h_sitename','h_wo','h_date','h_tech','h_contractor','h_region','h_district','h_scope','h_project','h_project_other','h_shelter','h_dc_load','h_qty'].forEach(id => {
     const el = document.getElementById(id);
     if (el) data.fields[id] = el.value;
   });
@@ -6334,6 +6599,12 @@ function loadProgress() {
     }
     if (f['h_scope']) {
       try { if (typeof onScopeChange === 'function') onScopeChange(); } catch(e) {}
+    }
+    // PM 2026-08-05: restore Project Name / Shelter Type BEFORE acceptance answers
+    // are re-applied, so the table is rebuilt with the correct conditional item set
+    // and the restored answers land on rows that actually exist.
+    if (f['h_project'] || f['h_shelter']) {
+      try { if (typeof onProjectChange === 'function') onProjectChange(); } catch(e) {}
     }
     // PM 2026-05-07: new_rack_scope restoration moved earlier (before Acceptance items)
     // so onNewRackChange doesn't wipe rack-gated answers. This block is intentionally empty.
@@ -8512,7 +8783,7 @@ function setLanguage(lang) {
     var sBadge = document.getElementById('badge-stop');
     if (sBadge && typeof STOP_CONDITIONS !== 'undefined') sBadge.textContent = STOP_CONDITIONS.length + ' ' + tUI('items');
     var aBadge = document.getElementById('badge-accept');
-    if (aBadge && typeof ACCEPT_DISPLAY_ORDER !== 'undefined') aBadge.textContent = ACCEPT_DISPLAY_ORDER.length + ' ' + tUI('items');
+    if (aBadge && typeof ACCEPT_DISPLAY_ORDER !== 'undefined') aBadge.textContent = getDisplayOrder().length + ' ' + tUI('items');
     else if (aBadge && typeof ACCEPTANCE_ITEMS !== 'undefined') aBadge.textContent = ACCEPTANCE_ITEMS.length + ' ' + tUI('items');
     var biBadge = document.getElementById('badge-batt-info');
     if (biBadge && typeof BATT_INFO_ROWS !== 'undefined') {
@@ -8724,10 +8995,17 @@ function _doRenderRemarksList() {
         // SPEC: When new_rack=No, the rack items + galvanization cert are auto-N/A'd
         // by the system. Don't list them as non-conformances.
         if (newRackVal === 'no' && rackGatedItems.indexOf(ai) !== -1) continue;
-        var albl = ACCEPTANCE_ITEMS[ai];
+        // PM 2026-08-05: resolve through the override helpers so the NC list shows
+        // the same CAPEX / Shelter / Aramco wording the checklist rendered.
+        var albl = (typeof getAcceptText === 'function') ? getAcceptText(ai) : ACCEPTANCE_ITEMS[ai];
         // PM 2026-05-06: prefer per-language accept_nok[ai] when defined, else fall back to English ACCEPTANCE_ITEMS_NOK[ai].
-        var langAcceptNok = (typeof currentLang !== 'undefined' && TRANSLATIONS[currentLang] && TRANSLATIONS[currentLang].accept_nok) ? TRANSLATIONS[currentLang].accept_nok[ai] : null;
-        var albl_nok = langAcceptNok || ((typeof ACCEPTANCE_ITEMS_NOK !== 'undefined' && ACCEPTANCE_ITEMS_NOK[ai]) ? ACCEPTANCE_ITEMS_NOK[ai] : albl);
+        // Overridden items have no translation entry, so English override wins for them.
+        var _isOverridden = (typeof isCapexProject === 'function') &&
+                            (ai === CAPEX_BLACKBOX_IDX || ai === CHARGE_CURRENT_IDX ||
+                             (isCapexProject() && (ai === 3 || ai === 4)) ||
+                             (isAramcoProject() && ai === AUTONOMY_TARGET_IDX));
+        var langAcceptNok = (!_isOverridden && typeof currentLang !== 'undefined' && TRANSLATIONS[currentLang] && TRANSLATIONS[currentLang].accept_nok) ? TRANSLATIONS[currentLang].accept_nok[ai] : null;
+        var albl_nok = langAcceptNok || ((typeof getAcceptNok === 'function' && getAcceptNok(ai)) ? getAcceptNok(ai) : albl);
         var sev = (typeof ACCEPT_SEV !== 'undefined' && ACCEPT_SEV[ai]) ? ACCEPT_SEV[ai] : '';
         var ntEl = document.getElementById('accept_note_' + ai);
         var noteVal = ntEl ? (ntEl.value || '').trim() : '';
@@ -9000,6 +9278,12 @@ const ACCEPT_LABELS = [
   "Rack galvanization certificate NOT handed to O&M",                   // 30
   "Old equipment NOT fully removed from site",                          // 31
   "Site NOT free of hazards",                                           // 32
+  // PM 2026-08-05: idx 33-34 were added in May but never given short labels —
+  // "Show what's missing" rendered them as "undefined". Backfilled here.
+  "Not enough space / ventilation clearances for the new rack",          // 33
+  "Battery NOT separately grounded to rack (jumper used)",               // 34
+  "Batteries NOT inside black box / ODU not locked",                     // 35
+  "Charging current per battery > 10 A after energizing",                // 36
 ];
 // PM 2026-05-06 / PM 2026-05-17: re-aligned to the current 14-item STOP_CONDITIONS order
 // (old idx 4 = Insufficient space moved to Acceptance subgroup 17.c).
@@ -9124,6 +9408,9 @@ const ACCEPT_SEV = [
   // PM 2026-05-17: appended items (idx 33-34) — rendered out-of-array-order via DISPLAY_ORDER
   'Major',  // 33 enough space / clearances — promoted from old Stop #5 (was Major)
   'Major',  // 34 separately grounded to rack (no battery-to-battery jumper) — NEW Major
+  // PM 2026-08-05: appended items (idx 35-36)
+  'Major',  // 35 CAPEX-only: batteries inside black box / ODU angle box lock
+  'Major',  // 36 charging current per battery ≤ 10 A after energizing
 ];
 
 const OLD_BATT_MODELS = {"Ailink": ["VHR TL48150LFP-3U-G"], "AMO": ["LFP48V150Ah", "LFP48V100Ah"], "Changhong": ["CH-48150"], "DPC": ["DPC-LFB48100"], "E2S": ["BTESF48V150-RVSE", "E2S-EVE48150"], "ENERGYLAND": ["EDLF48150", "EDLF48100"], "Fiber Home": ["LMU-48150", "LMU-48100"], "Fiber Ocean": ["FO-LB48150", "FO-LB48100"], "Huawei": ["ESM-48150", "ESM-48100B1"], "LEOCH": ["LFeLi48100"], "Lithtech": ["DTX48150 - CLM920"], "MOTOMA": ["LFP48V150", "LFP48V150-BJS"], "NARADA": ["48NPFC150-3U", "48NPFC100-3U"], "RAYTEL": ["RP-48150-3000"], "SACRED SUN": ["SCIFP48150", "SCIFP-48100"], "SAYA": ["SA48-150 - SWR12L"], "Shoto": ["SDA10-48100"], "Techline": ["TET3480150"], "Tianning": ["TELiF-48150-T", "TL48150LFP-3U-G"], "WECO": ["4K8-T 3000-3U"], "WeCo": ["WE-5K3"], "ZOCONO": ["ZJN-P-48V150AH", "ZJN-P-48V100AH"], "ZTE": ["ZXDC48FB150B1/ZXESM R411", "ZXESM R421", "ZXDC48FB100B3/ZXESM R311", "ZXESM R321"]};
@@ -9179,7 +9466,7 @@ function handleCommentPhoto(input, type, idx) {
   if (type === 'stop' && typeof STOP_CONDITIONS !== 'undefined') {
     questionText = STOP_CONDITIONS[idx] || '';
   } else if (type === 'accept' && typeof ACCEPTANCE_ITEMS !== 'undefined') {
-    questionText = ACCEPTANCE_ITEMS[idx] || '';
+    questionText = ((typeof getAcceptText === 'function') ? getAcceptText(idx) : ACCEPTANCE_ITEMS[idx]) || '';
   }
   var sectionLabel = (type === 'stop') ? 'Stop #' : 'Item #';
   var appendixKey = type + '_' + idx;
@@ -9303,7 +9590,7 @@ function removeCommentPhoto(type, idx, photoIdx) {
   } else {
     // Re-render appendix card for this question
     var photos = COMMENT_PHOTOS[key];
-    var q = (type === 'stop') ? (STOP_CONDITIONS[idx] || '') : (ACCEPTANCE_ITEMS[idx] || '');
+    var q = (type === 'stop') ? (STOP_CONDITIONS[idx] || '') : (((typeof getAcceptText === 'function') ? getAcceptText(idx) : ACCEPTANCE_ITEMS[idx]) || '');
     var sectionLabel = (type === 'stop') ? 'Stop #' : 'Item #';
     // Rebuild by clearing and re-adding
     var existing = document.getElementById('appendix_cmt_' + key);
