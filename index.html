@@ -18,7 +18,7 @@
 /* ── PM 2026-08-05: build version. Bump on every release — the service-worker
    cache key is derived from it, and it is shown in the top bar so a technician
    can report exactly which build they are running. ── */
-var APP_VERSION = '2026.08.05';
+var APP_VERSION = '2026.08.25';
 
 /* Logo was embedded twice as an identical 19,492-byte base64 PNG. It is now
    stored once and applied to every [data-logo] img at load. The app is fully
@@ -3630,7 +3630,10 @@ function onScopeChange() {
 }
 
 function refreshScopeDependentStopBadges() {
-  [5, 6].forEach(function(idx){
+  // PM 2026-08-25: idx 7 added — its severity is Project-dependent (Aramco
+  // Digital → Info), and the stop table is not re-rendered on project change,
+  // so its badge must be refreshed in place like the scope-dependent ones.
+  [5, 6, ARAMCO_INFO_STOP_IDX].forEach(function(idx){
     var row = document.getElementById('stop_row_' + idx);
     if (!row) return;
     var sevEff = (typeof getStopSev === 'function') ? getStopSev(idx) : (STOP_SEV[idx] || 'NA');
@@ -4690,6 +4693,9 @@ function getShelterType() {
 }
 function isCapexProject()  { return getProjectName() === 'CAPEX'; }
 function isAramcoProject() { return getProjectName() === 'Aramco Digital'; }
+// PM 2026-08-25: pre-condition #8 (STOP_CONDITIONS idx 7) — telecom ODC / RBS.
+// Information-Only on Aramco Digital; see getStopSev().
+var ARAMCO_INFO_STOP_IDX = 7;
 // "Shelter" and "Room" share the black-box wording; "ODU" is the other branch.
 // Falls back to black-box wording when Shelter Type is still unset.
 function isBlackBoxShelter() { return getShelterType() !== 'ODU'; }
@@ -4769,6 +4775,9 @@ function onShelterChange() { refreshConditionalChecklist(); }
 // rebuild. Radio handlers are document-delegated (installRadioToggle), so they
 // survive the innerHTML replacement — only the values need restoring.
 function refreshConditionalChecklist() {
+  // PM 2026-08-25: pre-condition #8's severity depends on Project Name, and the
+  // stop table is not rebuilt here — refresh its badge in place.
+  try { if (typeof refreshScopeDependentStopBadges === 'function') refreshScopeDependentStopBadges(); } catch (e) {}
   var snap = {};
   for (var i = 0; i < ACCEPTANCE_ITEMS.length; i++) {
     var rbs = document.getElementsByName('accept_' + i);
@@ -6234,7 +6243,9 @@ function _doComputeOutcome() {
       // PM 2026-05-06: use scope-aware severity for items 5 & 6.
       var sevEff = (typeof getStopSev === 'function') ? getStopSev(j) : (STOP_SEV[j] || 'NA');
       if (sevEff === 'Major') majorNok++;
-      else if (sevEff !== 'NA') minorNok++;
+      // PM 2026-08-25: 'Info' joins 'NA' as advisory — excluded from both
+      // counters, so it cannot drive the verdict.
+      else if (sevEff !== 'NA' && sevEff !== 'Info') minorNok++;
     }
   }
 
@@ -9155,6 +9166,10 @@ function _doRenderRemarksList() {
       { en: 'Major', css: 'sev-major' },
       { en: 'Minor', css: 'sev-minor' },
       { en: 'NA',    css: 'sev-na' },
+      // PM 2026-08-25: 'Info' (pre-condition #8 on Aramco Digital). Without this
+      // the bracket matched nothing, the chip rendered empty, and the stripping
+      // regex still removed '[Info]' — so the row showed no severity at all.
+      { en: 'Info',  css: 'sev-na' },
     ];
     var sevStr = '', sevCss = 'sev-na', sevLabel = '';
     sevPatterns.forEach(function(p){
@@ -9379,6 +9394,13 @@ const STOP_SEV   = [
 // PM 2026-05-17: idx 5 → 4, idx 6 → 5 after removal of old Stop #5 (enough space).
 function getStopSev(idx) {
   var scope = (document.getElementById('h_scope') || {}).value || '';
+  // PM 2026-08-25: on "Aramco Digital", pre-condition #8 — "Li-Ion BB is NOT
+  // being installed inside a telecom ODC / RBS" (idx 7) — becomes
+  // Information-Only. It is still asked and still listed as an observation, but
+  // a NOK on it no longer counts as a non-conformance, so it cannot make the
+  // handover conditional or rejected.
+  if (idx === ARAMCO_INFO_STOP_IDX &&
+      typeof isAramcoProject === 'function' && isAramcoProject()) return 'Info';
   if (idx === 4) {  // ONE DC system (was idx 5)
     if (scope === 'new_site') return 'Major';
     if (scope === 'replacement' || scope === 'upgrade') return 'NA';
