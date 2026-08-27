@@ -29,7 +29,7 @@
    top bar so a technician can report exactly which build they are running.
    ═══════════════════════════════════════════════════════════════════════ */
 
-const VERSION = '2026.08.25';
+const VERSION = '2026.08.27';
 const CACHE = 'tawal-liion-' + VERSION;
 
 /* Everything needed to run with no network at all. */

@@ -18,7 +18,7 @@
 /* ── PM 2026-08-05: build version. Bump on every release — the service-worker
    cache key is derived from it, and it is shown in the top bar so a technician
    can report exactly which build they are running. ── */
-var APP_VERSION = '2026.08.25';
+var APP_VERSION = '2026.08.27';
 
 /* Logo was embedded twice as an identical 19,492-byte base64 PNG. It is now
    stored once and applied to every [data-logo] img at load. The app is fully
@@ -2189,8 +2189,12 @@ if ('serviceWorker' in navigator && location.protocol.indexOf('http') === 0) {
            the old item 21; Project = "Aramco Digital" raises the autonomy target
            on item 28 from 4h to 12h; Shelter Type picks black-box vs ODU wording. -->
       <div class="hf"><label>Project Name</label><select id="h_project" onchange="onProjectChange();saveProgress()" style="width:100%;background:transparent;border:none;border-bottom:1px solid rgba(255,255,255,0.3);color:white;font-size:12px;padding:4px 2px;font-family:inherit;-webkit-appearance:none;appearance:none;cursor:pointer;"><option value="" selected>— None —</option><option value="CAPEX">CAPEX</option><option value="Colocation">Colocation</option><option value="B2S">B2S</option><option value="Mission Critical">Mission Critical</option><option value="Aramco Digital">Aramco Digital</option><option value="Other">Other</option></select></div>
+      <!-- PM 2026-08-25: Customer is independent of Project Name. Customer
+           "Zain" sets the item #28 autonomy target to 2h. -->
+      <div class="hf"><label>Customer</label><select id="h_customer" onchange="onCustomerChange();saveProgress()" style="width:100%;background:transparent;border:none;border-bottom:1px solid rgba(255,255,255,0.3);color:white;font-size:12px;padding:4px 2px;font-family:inherit;-webkit-appearance:none;appearance:none;cursor:pointer;"><option value="" selected>— None —</option><option value="stc">stc</option><option value="Zain">Zain</option><option value="Mobily">Mobily</option><option value="Salam">Salam</option><option value="Aramco Digital">Aramco Digital</option><option value="Other">Other</option></select></div>
       <div class="hf"><label>Shelter Type</label><select id="h_shelter" onchange="onShelterChange();saveProgress()" style="width:100%;background:transparent;border:none;border-bottom:1px solid rgba(255,255,255,0.3);color:white;font-size:12px;padding:4px 2px;font-family:inherit;-webkit-appearance:none;appearance:none;cursor:pointer;"><option value="" selected>— None —</option><option value="Shelter">Shelter</option><option value="Room">Room</option><option value="ODU">ODU</option></select></div>
       <div class="hf" id="hf_project_other" style="display:none;grid-column:span 2"><label>Project Name — please specify</label><input id="h_project_other" placeholder="Enter project name" oninput="saveProgress()"></div>
+      <div class="hf" id="hf_customer_other" style="display:none;grid-column:span 2"><label>Customer — please specify</label><input id="h_customer_other" placeholder="Enter customer name" oninput="saveProgress()"></div>
 
       <div class="hf"><label>Rectifier DC Load Current (A)</label><input id="h_dc_load" type="number" step="0.1" min="0" placeholder="e.g. 40" oninput="this.value=this.value.replace(/[^0-9.]/g,'');onDcLoadChange();saveProgress()" style="width:100%;"></div>
       <div class="hf"><label>No. of new batteries <span style="font-size:9px;opacity:.65">(auto)</span></label><input id="h_qty" type="number" placeholder="0" min="0" max="16" readonly style="width:80px;background:rgba(255,255,255,.08);cursor:not-allowed;"></div>
@@ -4600,8 +4604,8 @@ function getAcceptNok(i) {
                 : "More than 9 batteries installed in a single ODU.";
     }
   }
-  if (i === AUTONOMY_TARGET_IDX && isAramcoProject()) {
-    return "Overall batteries' backup time is less than 12 hours.";
+  if (i === AUTONOMY_TARGET_IDX && hasAutonomyOverride()) {
+    return "Overall batteries' backup time is less than " + getAutonomyTarget() + " hours.";
   }
   return ACCEPTANCE_ITEMS_NOK[i];
 }
@@ -4693,6 +4697,47 @@ function getShelterType() {
 }
 function isCapexProject()  { return getProjectName() === 'CAPEX'; }
 function isAramcoProject() { return getProjectName() === 'Aramco Digital'; }
+
+// PM 2026-08-25: Customer — a separate axis from Project Name. Note that
+// "Aramco Digital" appears in BOTH lists; the 12h autonomy rule keys off the
+// PROJECT field only, while the 2h rule keys off the CUSTOMER field.
+function getCustomerName() {
+  var el = document.getElementById('h_customer');
+  return el ? el.value : '';
+}
+function isZainCustomer() { return getCustomerName() === 'Zain'; }
+function isAramcoCustomer() { return getCustomerName() === 'Aramco Digital'; }
+
+// PM 2026-08-26: "Aramco Digital" may only pair with itself — picking it in
+// either field forces the other to match (see enforceAramcoPairing). Both
+// fields therefore agree, but this reads EITHER so that a save file written
+// before the pairing rule still resolves to the 12h target.
+function isAramcoDigital() { return isAramcoProject() || isAramcoCustomer(); }
+
+// Keeps Project Name and Customer locked together on "Aramco Digital".
+//   • choosing it in one field sets the other to it
+//   • moving one away clears the other, so the invalid pair can never exist
+// The guard prevents the two change handlers from re-entering each other.
+var _aramcoPairingBusy = false;
+function enforceAramcoPairing(changed) {
+  if (_aramcoPairingBusy) return;
+  var proj = document.getElementById('h_project');
+  var cust = document.getElementById('h_customer');
+  if (!proj || !cust) return;
+  var A = 'Aramco Digital';
+  _aramcoPairingBusy = true;
+  try {
+    if (changed === 'project') {
+      if (proj.value === A) cust.value = A;
+      else if (cust.value === A) cust.value = '';
+    } else {
+      if (cust.value === A) proj.value = A;
+      else if (proj.value === A) proj.value = '';
+    }
+  } finally {
+    _aramcoPairingBusy = false;
+  }
+}
 // PM 2026-08-25: pre-condition #8 (STOP_CONDITIONS idx 7) — telecom ODC / RBS.
 // Information-Only on Aramco Digital; see getStopSev().
 var ARAMCO_INFO_STOP_IDX = 7;
@@ -4730,8 +4775,10 @@ function getAcceptText(i) {
                 : "No. of batteries don't exceed 9 in a single ODU.";
     }
   }
-  if (i === AUTONOMY_TARGET_IDX && isAramcoProject()) {
-    return "Overall batteries' backup time ≥ 12 hours.";
+  // PM 2026-08-25: derived from getAutonomyTarget() so the wording, the note,
+  // the NOK phrasing and autoEvaluateAutonomy() can never disagree.
+  if (i === AUTONOMY_TARGET_IDX && hasAutonomyOverride()) {
+    return "Overall batteries' backup time ≥ " + getAutonomyTarget() + " hours.";
   }
   return ACCEPTANCE_ITEMS[i];
 }
@@ -4739,13 +4786,30 @@ function getAcceptText(i) {
 // Acceptance idx 15 = display #28 (backup time). Named so the Aramco override
 // and autoEvaluateAutonomy() cannot drift apart.
 var AUTONOMY_TARGET_IDX = 15;
-// Autonomy target in hours — 12h on Aramco Digital, otherwise the standard 4h.
-function getAutonomyTarget() { return isAramcoProject() ? 12 : 4; }
+// Autonomy target in hours for item #28.
+//   standard                                 → 4h
+//   Customer = "Zain"                        → 2h
+//   "Aramco Digital" in EITHER field         → 12h
+// PM 2026-08-26: Aramco Digital is now pinned to itself across Project Name and
+// Customer (enforceAramcoPairing), so the old Zain+Aramco conflict is no longer
+// reachable through the UI. The ordering below is kept as a backstop for save
+// files written before the pairing rule existed: the stricter 12h wins, since
+// this item gates handover acceptance and quietly relaxing it to 2h could pass a
+// site that misses its contractual autonomy.
+function getAutonomyTarget() {
+  var t = 4;
+  if (isZainCustomer())  t = 2;
+  if (isAramcoDigital()) t = 12;
+  return t;
+}
+// True when item #28 is running on a non-default target.
+function hasAutonomyOverride() { return getAutonomyTarget() !== 4; }
 
 // Note text with the Aramco autonomy override applied.
 function getAcceptNote(i) {
-  if (i === AUTONOMY_TARGET_IDX && isAramcoProject()) {
-    return "🔒 Auto-filled: autonomy = Σ(AH of Newly Installed + Pre-Existing) ÷ (Load × 54/48). OK when autonomy ≥ 12h.";
+  if (i === AUTONOMY_TARGET_IDX && hasAutonomyOverride()) {
+    return "🔒 Auto-filled: autonomy = Σ(AH of Newly Installed + Pre-Existing) ÷ (Load × 54/48). OK when autonomy ≥ " +
+           getAutonomyTarget() + "h.";
   }
   return ACCEPT_NOTES[i];
 }
@@ -4764,12 +4828,27 @@ function getAcceptLabel(i) {
 }
 
 // ── Project / Shelter change handlers ──
+// PM 2026-08-26: both "please specify" rows are synced from one place, because
+// the pairing rule can change the OTHER field's value behind the scenes.
+function syncConditionalHeaderFields() {
+  var po = document.getElementById('hf_project_other');
+  if (po) po.style.display = (getProjectName() === 'Other') ? '' : 'none';
+  var co = document.getElementById('hf_customer_other');
+  if (co) co.style.display = (getCustomerName() === 'Other') ? '' : 'none';
+}
+
 function onProjectChange() {
-  var other = document.getElementById('hf_project_other');
-  if (other) other.style.display = (getProjectName() === 'Other') ? '' : 'none';
+  enforceAramcoPairing('project');
+  syncConditionalHeaderFields();
   refreshConditionalChecklist();
 }
 function onShelterChange() { refreshConditionalChecklist(); }
+// PM 2026-08-25: Customer drives the item #28 autonomy target (Zain → 2h).
+function onCustomerChange() {
+  enforceAramcoPairing('customer');
+  syncConditionalHeaderFields();
+  refreshConditionalChecklist();
+}
 
 // Re-render the acceptance table, preserving answers and notes across the
 // rebuild. Radio handlers are document-delegated (installRadioToggle), so they
@@ -6492,7 +6571,7 @@ const _store = {
 function collectFormData() {
   const data = { ts: Date.now(), fields: {}, photos: {} };
   // Header fields
-  ['h_siteid','h_sitename','h_wo','h_date','h_tech','h_contractor','h_region','h_district','h_scope','h_project','h_project_other','h_shelter','h_dc_load','h_qty'].forEach(id => {
+  ['h_siteid','h_sitename','h_wo','h_date','h_tech','h_contractor','h_region','h_district','h_scope','h_project','h_project_other','h_customer','h_customer_other','h_shelter','h_dc_load','h_qty'].forEach(id => {
     const el = document.getElementById(id);
     if (el) data.fields[id] = el.value;
   });
@@ -6663,6 +6742,9 @@ function loadProgress() {
     // PM 2026-08-05: restore Project Name / Shelter Type BEFORE acceptance answers
     // are re-applied, so the table is rebuilt with the correct conditional item set
     // and the restored answers land on rows that actually exist.
+    if (f['h_customer']) {
+      try { if (typeof onCustomerChange === 'function') onCustomerChange(); } catch(e) {}
+    }
     if (f['h_project'] || f['h_shelter']) {
       try { if (typeof onProjectChange === 'function') onProjectChange(); } catch(e) {}
     }
@@ -9063,7 +9145,7 @@ function _doRenderRemarksList() {
         var _isOverridden = (typeof isCapexProject === 'function') &&
                             (ai === CAPEX_BLACKBOX_IDX || ai === CHARGE_CURRENT_IDX ||
                              (isCapexProject() && (ai === 3 || ai === 4)) ||
-                             (isAramcoProject() && ai === AUTONOMY_TARGET_IDX));
+                             (ai === AUTONOMY_TARGET_IDX && hasAutonomyOverride()));
         var langAcceptNok = (!_isOverridden && typeof currentLang !== 'undefined' && TRANSLATIONS[currentLang] && TRANSLATIONS[currentLang].accept_nok) ? TRANSLATIONS[currentLang].accept_nok[ai] : null;
         var albl_nok = langAcceptNok || ((typeof getAcceptNok === 'function' && getAcceptNok(ai)) ? getAcceptNok(ai) : albl);
         var sev = (typeof ACCEPT_SEV !== 'undefined' && ACCEPT_SEV[ai]) ? ACCEPT_SEV[ai] : '';
