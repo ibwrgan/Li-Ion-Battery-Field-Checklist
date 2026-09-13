@@ -4380,7 +4380,7 @@ const ACCEPT_NOTES = {
   14: "🔒 Auto-filled: OK if utilized fuses ≥ BBs; else OK if (Load × 54/48)/BBs < 50 A AND item 13 (max 2 per fuse) = OK; else NOK if load/BB ≥ 50 A.", // was idx 15
   15: "🔒 Auto-filled: autonomy = Σ(AH of Newly Installed + Pre-Existing) ÷ (Load × 54/48). OK when autonomy ≥ 4h.", // was idx 16
   17: "🔒 Auto-filled from Section 2-c. NOK if any Rectifier Cabinet MCU parameter row failed.",      // was idx 18
-  20: "Battery lock shall ONLY be activated upon gyroscope 'Anti-theft' threshold breach.",            // was idx 21
+  20: "Battery lock shall ONLY be activated upon gyroscope threshold breach, no need for on-site testing, a screenshot of activation’s status is enough", // was idx 21
   21: "🔒 Auto-filled from Section 2-a. NOK if any pre-configured verification row failed.",           // was idx 22
   26: "🔒 Auto-filled from Section 2-b. NOK if any BMS verification row was answered NOK.",            // new — was idx 27
   // PM 2026-05-17: Item #40 (idx 31) auto-rule removed — always manually answered.
@@ -4429,8 +4429,8 @@ const ACCEPTANCE_ITEMS = [
   "Rectifier Cabinet's MCU date/time is set to Riyadh time (GMT+3).",
   // 19 → "13" — BMS date/time (was old 21)
   "New Batteries BMS date/time is set to Riyadh time (GMT+3).",
-  // 20 → "14" — Anti-theft (was old 22)
-  "New Batteries' Anti-theft (gyroscope) protection feature is activated and tested on site.",
+  // 20 → "34" — Anti-theft (was old 22)
+  "New Batteries’ Anti-theft (gyroscope) protection feature is activated",
   // 21 → "15" — Pre-config validated — AUTO from 3A (was old 23)
   "New Batteries Pre-configured settings are verified.",
   // 22 → "16" — Red LED (was old 24)
@@ -4551,8 +4551,8 @@ const ACCEPTANCE_ITEMS_NOK = [
   "Rectifier Cabinet's MCU date/time is NOT set to Riyadh time (GMT+3).",
   // 19 → "13" — BMS date/time
   "New Batteries BMS date/time is NOT set to Riyadh time (GMT+3).",
-  // 20 → "14" — Anti-theft
-  "New Batteries' Anti-theft (gyroscope) protection feature is NOT activated and/or NOT tested on site.",
+  // 20 → "34" — Anti-theft
+  "New Batteries’ Anti-theft (gyroscope) protection feature is NOT activated.",
   // 21 → "15" — Pre-config — AUTO from 3A
   "New Batteries Pre-configured settings are NOT verified.",
   // 22 → "16" — Red LED
@@ -7197,7 +7197,7 @@ const TRANSLATIONS = {
       "🔒 Auto-filled: OK if utilized fuses ≥ BBs; else OK if (Load × 54/48)/BBs < 50 A AND item 13 (max 2 per fuse) = OK; else NOK if load/BB ≥ 50 A.": "🔒 يُملأ تلقائياً: OK إذا الفيوزات المستخدمة ≥ BBs؛ وإلا OK إذا (الحمل × 54/48)/BBs < 50 A AND البند 13 (حد أقصى 2 لكل فيوز) = OK؛ وإلا NOK إذا الحمل/BB ≥ 50 A.",
       "🔒 Auto-filled: autonomy = Σ(AH of Newly Installed + Pre-Existing) ÷ (Load × 54/48). OK when autonomy ≥ 4h.": "🔒 يُملأ تلقائياً: الاحتياطي = Σ(AH للمركّبة حديثاً + الحالية) ÷ (الحمل × 54/48). OK عندما الاحتياطي ≥ 4 ساعات.",
       "🔒 Auto-filled from Section 3B. NOK if any Rectifier Cabinet MCU parameter row failed.": "🔒 يُملأ تلقائياً من القسم 3B. NOK إذا فشل أي صف من معلمات MCU خزانة المقوّم.",
-      "Battery lock shall ONLY be activated upon gyroscope 'Anti-theft' threshold breach.": "يُفعَّل قفل البطارية فقط عند تجاوز عتبة الحماية ضد السرقة (Anti-theft) للجايروسكوب.",
+      "Battery lock shall ONLY be activated upon gyroscope threshold breach, no need for on-site testing, a screenshot of activation’s status is enough": "يُفعَّل قفل البطارية فقط عند تجاوز عتبة الجايروسكوب، ولا حاجة للاختبار في الموقع، وتكفي لقطة شاشة لحالة التفعيل.",
       "🔒 Auto-filled from Section 3A. NOK if any pre-configured verification row failed.": "🔒 يُملأ تلقائياً من القسم 3A. NOK إذا فشل أي صف من التحقق المُهيَّأ مسبقاً.",
       "🔒 Auto-filled from Section 3C. NOK if any BMS verification row was answered NOK.": "🔒 يُملأ تلقائياً من القسم 3C. NOK إذا تمت الإجابة بـ NOK على أي صف من تحقق BMS.",
       "🔒 Auto-OK when no 'Removed' batteries are registered (nothing to remove). Otherwise manual.": "🔒 OK تلقائياً عندما لا توجد بطاريات 'مفكوكة' مسجلة (لا شيء للإزالة). وإلا يدوي.",
@@ -7262,7 +7262,7 @@ const TRANSLATIONS = {
       "المعلومات المتعلقة بالبطاريات مهيَّأة بشكل صحيح على MCU خزانة المقوّم.",
       "تاريخ ووقت MCU خزانة المقوّم مضبوط على توقيت الرياض (GMT+3).",
       "تاريخ ووقت BMS البطاريات الجديدة مضبوط على توقيت الرياض (GMT+3).",
-      "ميزة الحماية ضد السرقة (الجايروسكوب) للبطاريات الجديدة مفعَّلة ومختبرة في الموقع.",
+      "ميزة الحماية ضد السرقة (الجايروسكوب) للبطاريات الجديدة مفعَّلة.",
       "تم التحقق من إعدادات البطاريات الجديدة المُهيَّأة مسبقاً.",
       "تظهر البطاريات الجديدة مؤشر LED أحمر عند قفل أو حماية البطارية.",
       "حماية الشحن الزائد للبطاريات لا تمنع وظيفة التفريغ.",
@@ -7315,7 +7315,7 @@ const TRANSLATIONS = {
       "المعلومات المتعلقة بالبطاريات غير مهيَّأة بشكل صحيح على MCU خزانة المقوّم.",
       "تاريخ ووقت MCU خزانة المقوّم غير مضبوط على توقيت الرياض (GMT+3).",
       "تاريخ ووقت BMS البطاريات الجديدة غير مضبوط على توقيت الرياض (GMT+3).",
-      "ميزة الحماية ضد السرقة (الجايروسكوب) للبطاريات الجديدة غير مفعَّلة و/أو غير مختبرة في الموقع.",
+      "ميزة الحماية ضد السرقة (الجايروسكوب) للبطاريات الجديدة غير مفعَّلة.",
       "إعدادات البطاريات الجديدة المُهيَّأة مسبقاً غير مُتحقَّق منها.",
       "البطاريات الجديدة لا تُظهر مؤشر LED أحمر عند قفل أو حماية البطارية.",
       "حماية الشحن الزائد للبطاريات تمنع وظيفة التفريغ.",
@@ -7602,7 +7602,7 @@ const TRANSLATIONS = {
       "🔒 Auto-filled: OK if utilized fuses ≥ BBs; else OK if (Load × 54/48)/BBs < 50 A AND item 13 (max 2 per fuse) = OK; else NOK if load/BB ≥ 50 A.": "🔒 Auto: OK kung utilized fuses ≥ BBs; kung hindi OK kung (Load × 54/48)/BBs < 50 A AT item 13 (max 2 per fuse) = OK; kung hindi NOK kung load/BB ≥ 50 A.",
       "🔒 Auto-filled: autonomy = Σ(AH of Newly Installed + Pre-Existing) ÷ (Load × 54/48). OK when autonomy ≥ 4h.": "🔒 Auto: autonomy = Σ(AH ng Newly Installed + Pre-Existing) ÷ (Load × 54/48). OK kapag autonomy ≥ 4h.",
       "🔒 Auto-filled from Section 3B. NOK if any Rectifier Cabinet MCU parameter row failed.": "🔒 Auto mula sa Section 3B. NOK kung anumang Rectifier Cabinet MCU parameter row ay nabigo.",
-      "Battery lock shall ONLY be activated upon gyroscope 'Anti-theft' threshold breach.": "Ang battery lock ay LAMANG i-activate kapag na-breach ang gyroscope 'Anti-theft' threshold.",
+      "Battery lock shall ONLY be activated upon gyroscope threshold breach, no need for on-site testing, a screenshot of activation’s status is enough": "Ang battery lock ay LAMANG i-activate kapag na-breach ang gyroscope threshold; hindi kailangan ang on-site testing, sapat na ang screenshot ng activation status.",
       "🔒 Auto-filled from Section 3A. NOK if any pre-configured verification row failed.": "🔒 Auto mula sa Section 3A. NOK kung anumang pre-configured verification row ay nabigo.",
       "🔒 Auto-filled from Section 3C. NOK if any BMS verification row was answered NOK.": "🔒 Auto mula sa Section 3C. NOK kung anumang BMS verification row ay sinagot ng NOK.",
       "🔒 Auto-OK when no 'Removed' batteries are registered (nothing to remove). Otherwise manual.": "🔒 Auto-OK kapag walang 'Removed' na baterya na nakatala (walang aalisin). Kung hindi, manual.",
@@ -7660,7 +7660,7 @@ const TRANSLATIONS = {
       "Tama ang configuration ng impormasyon ng baterya sa MCU ng rectifier cabinet.",
       "Naka-set sa Riyadh time (GMT+3) ang date/time ng MCU ng Rectifier Cabinet.",
       "Naka-set sa Riyadh time (GMT+3) ang BMS date/time ng bagong baterya.",
-      "Activated at na-test on-site ang Anti-theft (gyroscope) protection feature ng bagong baterya.",
+      "Activated ang Anti-theft (gyroscope) protection feature ng bagong baterya.",
       "Verified ang Pre-configured settings ng bagong baterya.",
       "Nagpapakita ng red LED indicator ang bagong baterya kapag locked o protected ang baterya.",
       "Hindi pinipigilan ng overcharge protection ng baterya ang battery discharge function.",
@@ -7906,7 +7906,7 @@ const TRANSLATIONS = {
       "🔒 Auto-filled: OK if utilized fuses ≥ BBs; else OK if (Load × 54/48)/BBs < 50 A AND item 13 (max 2 per fuse) = OK; else NOK if load/BB ≥ 50 A.": "🔒 स्वतः: OK यदि utilized fuses ≥ BBs; अन्यथा OK यदि (Load × 54/48)/BBs < 50 A AND item 13 (max 2 per fuse) = OK; अन्यथा NOK यदि load/BB ≥ 50 A।",
       "🔒 Auto-filled: autonomy = Σ(AH of Newly Installed + Pre-Existing) ÷ (Load × 54/48). OK when autonomy ≥ 4h.": "🔒 स्वतः: autonomy = Σ(AH of Newly स्थापित + Pre-Existing) ÷ (Load × 54/48). OK जब autonomy ≥ 4h।",
       "🔒 Auto-filled from Section 3B. NOK if any Rectifier Cabinet MCU parameter row failed.": "🔒 स्वतः अनुभाग 3B से। NOK यदि कोई रेक्टिफायर कैबिनेट MCU parameter row fail हुई।",
-      "Battery lock shall ONLY be activated upon gyroscope 'Anti-theft' threshold breach.": "बैटरी lock केवल gyroscope 'Anti-theft' threshold breach होने पर activate होगा।",
+      "Battery lock shall ONLY be activated upon gyroscope threshold breach, no need for on-site testing, a screenshot of activation’s status is enough": "बैटरी लॉक केवल gyroscope threshold breach होने पर activate होगा; on-site testing की आवश्यकता नहीं है, activation status का screenshot पर्याप्त है।",
       "🔒 Auto-filled from Section 3A. NOK if any pre-configured verification row failed.": "🔒 स्वतः अनुभाग 3A से। NOK यदि कोई pre-कॉन्फ़िगर verification row fail हुई।",
       "🔒 Auto-filled from Section 3C. NOK if any BMS verification row was answered NOK.": "🔒 स्वतः अनुभाग 3C से। NOK यदि कोई BMS verification row NOK उत्तर दी गई।",
       "🔒 Auto-OK when no 'Removed' batteries are registered (nothing to remove). Otherwise manual.": "🔒 स्वतः-OK जब कोई 'Removed' बैटरी पंजीकृत नहीं (हटाने को कुछ नहीं)। अन्यथा manual।",
@@ -7968,7 +7968,7 @@ const TRANSLATIONS = {
       "बैटरियों की संबंधित जानकारी रेक्टिफायर कैबिनेट के MCU पर सही ढंग से कॉन्फ़िगर है।",
       "रेक्टिफायर कैबिनेट के MCU का तिथि/समय Riyadh समय (GMT+3) पर set है।",
       "नई बैटरियों के BMS का तिथि/समय Riyadh समय (GMT+3) पर set है।",
-      "नई बैटरियों का Anti-theft (gyroscope) सुरक्षा feature on-साइट activated और tested है।",
+      "नई बैटरियों का Anti-theft (gyroscope) सुरक्षा feature activated है।",
       "नई बैटरियों की Pre-कॉन्फ़िगर settings verified हैं।",
       "नई बैटरियाँ locked या protected होने पर red LED indicator दिखाती हैं।",
       "बैटरियों का overcharge सुरक्षा बैटरी discharge function को नहीं रोकता।",
@@ -8214,7 +8214,7 @@ const TRANSLATIONS = {
       "🔒 Auto-filled: OK if utilized fuses ≥ BBs; else OK if (Load × 54/48)/BBs < 50 A AND item 13 (max 2 per fuse) = OK; else NOK if load/BB ≥ 50 A.": "🔒 خودکار: OK اگر utilized fuses ≥ BBs؛ ورنہ OK اگر (Load × 54/48)/BBs < 50 A AND item 13 (max 2 per fuse) = OK؛ ورنہ NOK اگر load/BB ≥ 50 A۔",
       "🔒 Auto-filled: autonomy = Σ(AH of Newly Installed + Pre-Existing) ÷ (Load × 54/48). OK when autonomy ≥ 4h.": "🔒 خودکار: autonomy = Σ(AH of Newly نصب + Pre-Existing) ÷ (Load × 54/48)۔ OK جب autonomy ≥ 4h۔",
       "🔒 Auto-filled from Section 3B. NOK if any Rectifier Cabinet MCU parameter row failed.": "🔒 خودکار سیکشن 3B سے۔ NOK اگر کوئی ریکٹیفائر کیبنٹ MCU parameter row ناکام ہو۔",
-      "Battery lock shall ONLY be activated upon gyroscope 'Anti-theft' threshold breach.": "بیٹری lock صرف gyroscope 'Anti-theft' threshold breach ہونے پر activate ہوگا۔",
+      "Battery lock shall ONLY be activated upon gyroscope threshold breach, no need for on-site testing, a screenshot of activation’s status is enough": "بیٹری لاک صرف gyroscope threshold breach ہونے پر فعال کیا جائے؛ on-site testing کی ضرورت نہیں، activation status کا screenshot کافی ہے۔",
       "🔒 Auto-filled from Section 3A. NOK if any pre-configured verification row failed.": "🔒 خودکار سیکشن 3A سے۔ NOK اگر کوئی pre-کنفگرڈ verification row ناکام ہو۔",
       "🔒 Auto-filled from Section 3C. NOK if any BMS verification row was answered NOK.": "🔒 خودکار سیکشن 3C سے۔ NOK اگر کسی BMS verification row کا جواب NOK ہو۔",
       "🔒 Auto-OK when no 'Removed' batteries are registered (nothing to remove). Otherwise manual.": "🔒 خودکار-OK جب کوئی 'Removed' بیٹری درج نہ ہو (ہٹانے کو کچھ نہیں)۔ ورنہ manual۔",
@@ -8276,7 +8276,7 @@ const TRANSLATIONS = {
       "بیٹریوں کی متعلقہ معلومات ریکٹیفائر کیبنٹ کے MCU پر درست طور پر کنفگرڈ ہیں۔",
       "ریکٹیفائر کیبنٹ کے MCU کا تاریخ/وقت Riyadh وقت (GMT+3) پر set ہے۔",
       "نئی بیٹریوں کے BMS کا تاریخ/وقت Riyadh وقت (GMT+3) پر set ہے۔",
-      "نئی بیٹریوں کا Anti-theft (gyroscope) تحفظ feature on-سائٹ activated اور tested ہے۔",
+      "نئی بیٹریوں کا Anti-theft (gyroscope) تحفظ feature activated ہے۔",
       "نئی بیٹریوں کی Pre-کنفگرڈ settings verified ہیں۔",
       "نئی بیٹریاں locked یا protected ہونے پر red LED indicator دکھاتی ہیں۔",
       "بیٹریوں کا overcharge تحفظ بیٹری discharge function کو نہیں روکتا۔",
@@ -8522,7 +8522,7 @@ const TRANSLATIONS = {
       "🔒 Auto-filled: OK if utilized fuses ≥ BBs; else OK if (Load × 54/48)/BBs < 50 A AND item 13 (max 2 per fuse) = OK; else NOK if load/BB ≥ 50 A.": "🔒 স্বয়ংক্রিয়: OK যদি utilized fuses ≥ BBs; অন্যথা OK যদি (Load × 54/48)/BBs < 50 A AND item 13 (max 2 per fuse) = OK; অন্যথা NOK যদি load/BB ≥ 50 A।",
       "🔒 Auto-filled: autonomy = Σ(AH of Newly Installed + Pre-Existing) ÷ (Load × 54/48). OK when autonomy ≥ 4h.": "🔒 স্বয়ংক্রিয়: autonomy = Σ(AH of Newly ইনস্টল + Pre-Existing) ÷ (Load × 54/48)। OK যখন autonomy ≥ 4h।",
       "🔒 Auto-filled from Section 3B. NOK if any Rectifier Cabinet MCU parameter row failed.": "🔒 স্বয়ংক্রিয় অংশ 3B থেকে। NOK যদি কোনো রেক্টিফায়ার ক্যাবিনেট MCU parameter row ব্যর্থ হয়।",
-      "Battery lock shall ONLY be activated upon gyroscope 'Anti-theft' threshold breach.": "ব্যাটারি lock শুধুমাত্র gyroscope 'Anti-theft' threshold breach হলে activate হবে।",
+      "Battery lock shall ONLY be activated upon gyroscope threshold breach, no need for on-site testing, a screenshot of activation’s status is enough": "ব্যাটারি lock শুধুমাত্র gyroscope threshold breach হলে সক্রিয় হবে; on-site testing-এর প্রয়োজন নেই, activation status-এর screenshot যথেষ্ট।",
       "🔒 Auto-filled from Section 3A. NOK if any pre-configured verification row failed.": "🔒 স্বয়ংক্রিয় অংশ 3A থেকে। NOK যদি কোনো pre-কনফিগার verification row ব্যর্থ হয়।",
       "🔒 Auto-filled from Section 3C. NOK if any BMS verification row was answered NOK.": "🔒 স্বয়ংক্রিয় অংশ 3C থেকে। NOK যদি কোনো BMS verification row-এর উত্তর NOK।",
       "🔒 Auto-OK when no 'Removed' batteries are registered (nothing to remove). Otherwise manual.": "🔒 স্বয়ংক্রিয়-OK যখন কোনো 'Removed' ব্যাটারি নিবন্ধিত নেই (অপসারণের কিছু নেই)। অন্যথা manual।",
@@ -8584,7 +8584,7 @@ const TRANSLATIONS = {
       "ব্যাটারির সংশ্লিষ্ট তথ্য রেক্টিফায়ার ক্যাবিনেট-এর MCU-তে সঠিকভাবে কনফিগার।",
       "রেক্টিফায়ার ক্যাবিনেট-এর MCU-র তারিখ/সময় Riyadh সময় (GMT+3) এ set।",
       "নতুন ব্যাটারির BMS-এর তারিখ/সময় Riyadh সময় (GMT+3) এ set।",
-      "নতুন ব্যাটারির Anti-theft (gyroscope) সুরক্ষা feature on-সাইট activated এবং tested।",
+      "নতুন ব্যাটারির Anti-theft (gyroscope) সুরক্ষা feature activated।",
       "নতুন ব্যাটারির Pre-কনফিগার settings verified।",
       "নতুন ব্যাটারিগুলো locked বা protected হলে red LED indicator দেখায়।",
       "ব্যাটারির overcharge সুরক্ষা ব্যাটারি discharge function বন্ধ করে না।",
@@ -9411,7 +9411,7 @@ const ACCEPT_LABELS = [
   "Battery info NOT correctly configured on Rectifier MCU",             // 17
   "Rectifier MCU date/time NOT set to GMT+3",                           // 18
   "BMS date/time NOT set to GMT+3",                                     // 19
-  "Anti-theft protection NOT activated/tested",                         // 20
+  "Anti-theft protection NOT activated",                                // 20
   "Pre-configured settings NOT verified",                               // 21
   "Red LED NOT activating on lock/protection",                          // 22
   "Overcharge protection blocks both charge and discharge",             // 23
